@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get('url')
   if (!url) return new NextResponse('Missing url param', { status: 400 })
 
-  const result = await get(url, { token })
+  const result = await get(url, { token, access: 'private' })
 
   if (!result || result.statusCode !== 200) {
     return new NextResponse('Not found', { status: 404 })
