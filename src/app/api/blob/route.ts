@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { get } from '@vercel/blob'
 import { getSession } from '@/lib/auth'
 
-// vanamitra-media store token (matches what Vercel connects via BLOB_V_READ_WRITE_TOKEN)
 const blobToken = process.env.BLOB_V_READ_WRITE_TOKEN || ''
 
 // GET /api/blob?url=<encoded-blob-url>
-// Server-side proxy for private Vercel Blob files (vanamitra-media store).
+// Serves private Vercel Blob files (vanamitra-media store) to authenticated users.
 export async function GET(request: NextRequest) {
   const session = await getSession()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
@@ -16,31 +14,25 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Invalid url', { status: 400 })
   }
 
-  // Extract pathname from the stored URL so get() uses the correct store from the token
-  let pathname: string
   try {
-    pathname = new URL(url).pathname.slice(1)
-  } catch {
-    return new NextResponse('Invalid url', { status: 400 })
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${blobToken}` },
+      cache: 'no-store',
+    })
+
+    if (!res.ok) {
+      console.error(`[blob proxy] ${res.status} fetching ${url}`)
+      return new NextResponse(`Blob error`, { status: res.status })
+    }
+
+    return new NextResponse(res.body, {
+      headers: {
+        'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
+        'Cache-Control': 'private, max-age=3600',
+      },
+    })
+  } catch (err) {
+    console.error('[blob proxy] fetch threw:', err)
+    return new NextResponse('Internal error', { status: 500 })
   }
-
-  const result = await get(pathname, {
-    access: 'private',
-    token: blobToken,
-  })
-
-  if (result === null) {
-    return new NextResponse('Not found', { status: 404 })
-  }
-
-  if (result.statusCode !== 200) {
-    return new NextResponse('Not found', { status: 404 })
-  }
-
-  return new NextResponse(result.stream, {
-    headers: {
-      'Content-Type': result.blob.contentType || 'image/jpeg',
-      'Cache-Control': 'private, max-age=3600',
-    },
-  })
 }
