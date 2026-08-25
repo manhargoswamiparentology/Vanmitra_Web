@@ -117,7 +117,7 @@ export default function WaitlistPage() {
             <input
               id="name"
               type="text"
-              placeholder="Amrit, Nirali…"
+              placeholder="Your name…"
               value={name}
               onChange={e => setName(e.target.value)}
             />

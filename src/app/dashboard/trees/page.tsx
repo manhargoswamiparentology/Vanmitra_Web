@@ -320,7 +320,7 @@ export default async function TreesPage({ searchParams }: PageProps) {
                     <div key={update.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       {update.photoUrl ? (
                         <img
-                          src={update.photoUrl}
+                          src={`/api/blob?url=${encodeURIComponent(update.photoUrl!)}`}
                           alt="Update"
                           style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                         />

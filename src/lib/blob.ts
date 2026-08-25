@@ -14,7 +14,7 @@ export async function uploadTreePhoto(
   const ext = file.name.split('.').pop() || 'jpg'
   const name = fileName || `tree-${treeId}-${Date.now()}.${ext}`
   const blob = await put(`trees/${treeId}/${name}`, file, {
-    access: 'public',
+    access: 'private',
     contentType: file.type,
     token,
   })
@@ -23,4 +23,10 @@ export async function uploadTreePhoto(
 
 export async function deleteBlob(url: string) {
   await del(url, { token })
+}
+
+// Convert a private blob URL to a proxied URL safe for browser <img> src
+export function blobSrc(url: string | null | undefined): string {
+  if (!url) return ''
+  return `/api/blob?url=${encodeURIComponent(url)}`
 }

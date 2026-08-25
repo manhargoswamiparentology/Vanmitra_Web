@@ -231,7 +231,7 @@ export default async function DashboardHome() {
           <div style={{ display: 'flex', gap: 0 }}>
             {latestUpdate.photoUrl ? (
               <img
-                src={latestUpdate.photoUrl}
+                src={`/api/blob?url=${encodeURIComponent(latestUpdate.photoUrl!)}`}
                 alt="Tree update"
                 style={{ width: 160, height: 140, objectFit: 'cover', flexShrink: 0 }}
               />

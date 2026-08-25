@@ -160,7 +160,7 @@ function PlantWizardInner() {
   // ── Derived ───────────────────────────────────────────────────────────────
   const occasion     = OCCASIONS.find(o => o.id === occasionId)
   const selectedTree = availableTrees.find(t => t.id === selectedTreeId)
-  const validRecipients = recipients.filter(r => r.name.trim() && (!isMulti || (r.phone.trim() && r.speciesId)))
+  const validRecipients = recipients.filter(r => r.name.trim() && r.email.trim() && r.phone.trim() && (!isMulti || r.speciesId))
   const treeCount    = isMulti ? validRecipients.length : 1
   const totalPrice   = treeCount * 500
 
@@ -713,7 +713,7 @@ function PlantWizardInner() {
                         id="recipientName"
                         type="text"
                         required
-                        placeholder="e.g. Nirali, Maa, Rahul Mehta"
+                        placeholder="e.g. Maa, Dadi, Baby Arjun"
                         value={recipients[0]?.name ?? ''}
                         onChange={e => updateRecipient(recipients[0].id, 'name', e.target.value)}
                       />
@@ -724,7 +724,7 @@ function PlantWizardInner() {
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                         <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-mute)' }}>
-                          Their contact (optional)
+                          Their contact
                         </div>
                         <button
                           type="button"
@@ -743,21 +743,23 @@ function PlantWizardInner() {
                       </p>
                       <div style={{ display: 'grid', gap: 12 }}>
                         <div className="field" style={{ margin: 0 }}>
-                          <label htmlFor="employeeEmail">Their email</label>
+                          <label htmlFor="employeeEmail">Their email *</label>
                           <input
                             id="employeeEmail"
                             type="email"
-                            placeholder="nirali@example.com"
+                            required
+                            placeholder="their@email.com"
                             value={recipients[0]?.email ?? ''}
                             onChange={e => updateRecipient(recipients[0].id, 'email', e.target.value)}
                           />
                         </div>
                         <div className="field" style={{ margin: 0 }}>
-                          <label htmlFor="employeePhone">Their phone (with country code)</label>
+                          <label htmlFor="employeePhone">Their phone (with country code) *</label>
                           <input
                             id="employeePhone"
                             type="tel"
-                            placeholder="+91 98765 43210"
+                            required
+                            placeholder="+91 XXXXX XXXXX"
                             value={recipients[0]?.phone ?? ''}
                             onChange={e => updateRecipient(recipients[0].id, 'phone', e.target.value)}
                           />
@@ -847,7 +849,7 @@ function PlantWizardInner() {
                                 <label style={{ fontSize: 11 }}>Phone * <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(with country code)</span></label>
                                 <input
                                   type="tel"
-                                  placeholder="+91 98765 43210"
+                                  placeholder="+91 XXXXX XXXXX"
                                   value={rec.phone}
                                   onChange={e => updateRecipient(rec.id, 'phone', e.target.value)}
                                   style={{ fontSize: 14, padding: '8px 12px' }}

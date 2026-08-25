@@ -228,7 +228,7 @@ export default async function AdminOrderDetailPage({
             {tree.photos.map((photo: { id: string; url: string; caption: string | null; takenAt: Date }) => (
               <div key={photo.id} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
                 <img
-                  src={photo.url}
+                  src={`/api/blob?url=${encodeURIComponent(photo.url)}`}
                   alt={photo.caption || 'Tree photo'}
                   style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', display: 'block' }}
                 />
@@ -281,7 +281,7 @@ export default async function AdminOrderDetailPage({
                 </div>
                 {update.photoUrl && (
                   <img
-                    src={update.photoUrl}
+                    src={`/api/blob?url=${encodeURIComponent(update.photoUrl!)}`}
                     alt="Update photo"
                     style={{ width: 200, height: 130, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--line)' }}
                   />

@@ -113,7 +113,7 @@ export default function LogVisitForm() {
               <input
                 id="companions"
                 type="text"
-                placeholder="e.g. Came with family, solo, with Nirali"
+                placeholder="e.g. Came with family, solo, with friends"
                 value={companions}
                 onChange={e => setCompanions(e.target.value)}
               />

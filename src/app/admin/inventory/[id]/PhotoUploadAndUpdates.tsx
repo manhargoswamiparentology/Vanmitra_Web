@@ -178,7 +178,7 @@ export default function PhotoUploadAndUpdates({ treeId, photos, updates }: Props
                 }}
               >
                 <img
-                  src={photo.url}
+                  src={`/api/blob?url=${encodeURIComponent(photo.url)}`}
                   alt={photo.caption || 'Tree photo'}
                   style={{
                     width: '100%',
@@ -335,7 +335,7 @@ export default function PhotoUploadAndUpdates({ treeId, photos, updates }: Props
                 </div>
                 {update.photoUrl && (
                   <img
-                    src={update.photoUrl}
+                    src={`/api/blob?url=${encodeURIComponent(update.photoUrl!)}`}
                     alt="Update photo"
                     style={{
                       width: 200,

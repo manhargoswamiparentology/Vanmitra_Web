@@ -248,7 +248,7 @@ export default async function PublicCertificatePage({ params }: Props) {
                   </div>
                   {u.photoUrl && (
                     <img
-                      src={u.photoUrl}
+                      src={`/api/blob?url=${encodeURIComponent(u.photoUrl!)}`}
                       alt="Tree update"
                       style={{ width: '100%', borderRadius: 8, aspectRatio: '16/9', objectFit: 'cover', marginTop: 8 }}
                     />
