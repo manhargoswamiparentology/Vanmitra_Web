@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { get } from '@vercel/blob'
 import { getSession } from '@/lib/auth'
 
-const blobToken =
-  process.env.BLOB_READ_WRITE_TOKEN ||
-  process.env.BLOB_V_READ_WRITE_TOKEN ||
-  ''
+// vanamitra-media store token (matches what Vercel connects via BLOB_V_READ_WRITE_TOKEN)
+const blobToken = process.env.BLOB_V_READ_WRITE_TOKEN || ''
 
 // GET /api/blob?url=<encoded-blob-url>
-// Server-side proxy for private Vercel Blob files.
+// Server-side proxy for private Vercel Blob files (vanamitra-media store).
 export async function GET(request: NextRequest) {
   const session = await getSession()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
@@ -17,28 +16,31 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Invalid url', { status: 400 })
   }
 
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${blobToken}` },
-    // forward cache headers from the browser so conditional GETs work
-    ...(request.headers.get('if-none-match')
-      ? { headers: { Authorization: `Bearer ${blobToken}`, 'If-None-Match': request.headers.get('if-none-match')! } }
-      : {}),
+  // Extract pathname from the stored URL so get() uses the correct store from the token
+  let pathname: string
+  try {
+    pathname = new URL(url).pathname.slice(1)
+  } catch {
+    return new NextResponse('Invalid url', { status: 400 })
+  }
+
+  const result = await get(pathname, {
+    access: 'private',
+    token: blobToken,
   })
 
-  if (res.status === 304) {
-    return new NextResponse(null, { status: 304 })
+  if (result === null) {
+    return new NextResponse('Not found', { status: 404 })
   }
 
-  if (!res.ok) {
-    console.error(`[blob proxy] ${res.status} for ${url}`)
-    return new NextResponse(`Blob error ${res.status}`, { status: res.status })
+  if (result.statusCode !== 200) {
+    return new NextResponse('Not found', { status: 404 })
   }
 
-  return new NextResponse(res.body, {
+  return new NextResponse(result.stream, {
     headers: {
-      'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
+      'Content-Type': result.blob.contentType || 'image/jpeg',
       'Cache-Control': 'private, max-age=3600',
-      ...(res.headers.get('ETag') ? { ETag: res.headers.get('ETag')! } : {}),
     },
   })
 }
