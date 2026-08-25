@@ -1,31 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { get } from '@vercel/blob'
 import { getSession } from '@/lib/auth'
 
-const token =
+const blobToken =
   process.env.BLOB_READ_WRITE_TOKEN ||
   process.env.BLOB_V_READ_WRITE_TOKEN ||
   ''
 
 // GET /api/blob?url=<encoded-blob-url>
-// Proxies a private Vercel Blob file to authenticated users.
+// Server-side proxy for private Vercel Blob files.
 export async function GET(request: NextRequest) {
   const session = await getSession()
   if (!session) return new NextResponse('Unauthorized', { status: 401 })
 
   const url = request.nextUrl.searchParams.get('url')
-  if (!url) return new NextResponse('Missing url param', { status: 400 })
-
-  const result = await get(url, { token, access: 'private' })
-
-  if (!result || result.statusCode !== 200) {
-    return new NextResponse('Not found', { status: 404 })
+  if (!url || !url.includes('blob.vercel-storage.com')) {
+    return new NextResponse('Invalid url', { status: 400 })
   }
 
-  return new NextResponse(result.stream, {
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${blobToken}` },
+    // forward cache headers from the browser so conditional GETs work
+    ...(request.headers.get('if-none-match')
+      ? { headers: { Authorization: `Bearer ${blobToken}`, 'If-None-Match': request.headers.get('if-none-match')! } }
+      : {}),
+  })
+
+  if (res.status === 304) {
+    return new NextResponse(null, { status: 304 })
+  }
+
+  if (!res.ok) {
+    console.error(`[blob proxy] ${res.status} for ${url}`)
+    return new NextResponse(`Blob error ${res.status}`, { status: res.status })
+  }
+
+  return new NextResponse(res.body, {
     headers: {
-      'Content-Type': result.blob.contentType || 'image/jpeg',
+      'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
       'Cache-Control': 'private, max-age=3600',
+      ...(res.headers.get('ETag') ? { ETag: res.headers.get('ETag')! } : {}),
     },
   })
 }
