@@ -189,7 +189,7 @@ export default async function TreesPage({ searchParams }: PageProps) {
           {/* Cover photo */}
           {coverPhoto ? (
             <img
-              src={coverPhoto.url}
+              src={`/api/blob?url=${encodeURIComponent(coverPhoto.url)}`}
               alt={coverPhoto.caption || 'Tree photo'}
               style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }}
             />
