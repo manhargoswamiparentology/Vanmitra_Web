@@ -191,7 +191,13 @@ export default async function TreesPage({ searchParams }: PageProps) {
             <img
               src={`/api/blob?url=${encodeURIComponent(coverPhoto.url)}`}
               alt={coverPhoto.caption || 'Tree photo'}
-              style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }}
+              style={{
+                width: '100%',
+                height: 260,
+                objectFit: 'contain',
+                display: 'block',
+                background: 'var(--paper-2)',
+              }}
             />
           ) : (
             <div className="photo-ph" style={{ height: 260 }}>
