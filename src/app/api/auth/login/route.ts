@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
-import { createSession } from '@/lib/auth'
+import { createSession, signToken } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    await createSession({ userId: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin })
-    return NextResponse.json({ ok: true, isAdmin: user.isAdmin })
+    const payload = { userId: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin }
+    await createSession(payload)
+    const token = await signToken(payload)
+    return NextResponse.json({ ok: true, token, isAdmin: user.isAdmin })
   } catch (err) {
     console.error('Login error:', err)
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
