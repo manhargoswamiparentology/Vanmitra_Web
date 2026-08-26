@@ -6,6 +6,43 @@ Newest entries at the top. Each entry: symptom → root cause → fix → files.
 
 ---
 
+## 7. Admin blog posts had no public page — "View" 404'd
+
+**Status:** Fixed (this PR)
+**Reported:** Admin → Blog Posts → "View" on any post →
+`https://www.vanmittra.com/blog/<slug>` → 404.
+
+**Root cause:** Two entirely separate, unconnected content systems both
+called "blog":
+1. The public **Journal** (`/journal`, `/journal/[slug]`) — hardcoded,
+   reading from the static `BLOG_POSTS` array in `src/data/constants.ts`
+   (editorial pieces, matched by a fixed `id`, not admin-editable).
+2. The admin **Blog Posts** CMS (`/admin/blog`, `/admin/blog/new`) — a real
+   `BlogPost` Prisma table, with create/list API routes
+   (`src/app/api/admin/blog/route.ts`) that work fine.
+
+Nothing ever read `BlogPost` on the public side. The admin "View" link
+pointed at `/blog/<slug>` — a route that never existed at all — so every
+post created through the admin CMS was unreachable from the moment it was
+published, not just for this one post.
+
+**Fix:** Added the missing public routes, sourced from the `BlogPost`
+table (kept separate from `/journal`, which stays on its static content —
+merging the two content systems wasn't asked for and would be a bigger,
+riskier change):
+- `src/app/blog/[slug]/page.tsx` — detail page. `content` is a single plain
+  `<textarea>` value (see `admin/blog/new/page.tsx`), so paragraphs are
+  split on blank lines (falling back to single line breaks).
+- `src/app/blog/page.tsx` — index/listing page. Needed so the detail page's
+  "← All posts" and "Keep reading" links have somewhere to go, instead of
+  just moving the same 404 one click over.
+
+**Files:**
+- `src/app/blog/page.tsx` (new)
+- `src/app/blog/[slug]/page.tsx` (new)
+
+---
+
 ## 6. Existing trees' QR codes still dead after the route fix (bug #4)
 
 **Status:** Fixed (this PR)
