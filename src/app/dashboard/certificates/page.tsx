@@ -475,9 +475,9 @@ export default async function CertificatesPage({ searchParams }: PageProps) {
             justifyContent: 'center',
           }}
         >
-          <button className="btn btn-primary btn-sm">
+          <a href={`/api/dedications/${selectedTree.id}/certificate`} className="btn btn-primary btn-sm">
             Download PDF
-          </button>
+          </a>
           {shareUrl && (
             <a
               href={`https://wa.me/?text=${whatsappMsg}`}
