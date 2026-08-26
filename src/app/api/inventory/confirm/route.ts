@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { after } from 'next/server'
+import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { randomBytes } from 'crypto'
+import { sendPurchaseEmails } from '@/lib/email/sendPurchaseEmails'
 
 // POST /api/inventory/confirm
 // Called after "payment" — converts a RESERVED tree into ALLOCATED + creates Dedication
@@ -112,6 +115,22 @@ export async function POST(req: NextRequest) {
       })
 
       return { dedication: ded, autoUpdate: msg1 }
+    })
+
+    // Build the base URL now (request headers aren't guaranteed inside `after` on every runtime)
+    const headersList = await headers()
+    const host = headersList.get('host') || 'vanamitra-seven.vercel.app'
+    const proto = host.startsWith('localhost') ? 'http' : 'https'
+    const baseUrl = `${proto}://${host}`
+
+    // Send the thank-you / gift emails after the response goes out, so a slow
+    // inbox or PDF render never delays the purchase confirmation itself.
+    after(async () => {
+      try {
+        await sendPurchaseEmails(dedication.id, baseUrl)
+      } catch (err) {
+        console.error('Failed to send purchase emails:', err)
+      }
     })
 
     return NextResponse.json({ ok: true, dedicationId: dedication.id, shareToken })
