@@ -101,7 +101,7 @@ export default async function AdminBookingsPage({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, fontFamily: 'var(--display)' }}>
             <thead>
               <tr style={{ background: 'var(--paper-2)', borderBottom: '1px solid var(--line)' }}>
-                {['Order ID', 'Tree ID', 'Recipient', 'Occasion', 'Species', 'User', 'Status', 'Date', ''].map((col) => (
+                {['Order ID', 'Tree ID', 'Recipient', 'Occasion', 'Species', 'User', 'Status', 'Date / Time', ''].map((col) => (
                   <th
                     key={col}
                     style={{
@@ -172,6 +172,10 @@ export default async function AdminBookingsPage({
                     </td>
                     <td style={{ padding: '12px 14px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-mute)', whiteSpace: 'nowrap' }}>
                       {new Date(d.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                      <br />
+                      <span style={{ fontSize: 10 }}>
+                        {new Date(d.createdAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                      </span>
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <Link
