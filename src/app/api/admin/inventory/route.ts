@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 
@@ -51,8 +52,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'speciesId required' }, { status: 400 })
     }
 
+    const headersList = await headers()
+    const host = headersList.get('host') || 'vanamitra-seven.vercel.app'
+    const proto = host.startsWith('localhost') ? 'http' : 'https'
+
     const uniqueId = `VM-${Date.now()}`
-    const qrCodeData = `https://vanamitra.in/tree/${uniqueId}`
+    const qrCodeData = `${proto}://${host}/tree/${uniqueId}`
 
     const tree = await prisma.inventoryTree.create({
       data: {

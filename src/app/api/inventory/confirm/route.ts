@@ -39,6 +39,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Normalized so it matches session.email (always lowercase) if the
+    // recipient already has — or later creates — their own account.
+    const normalizedEmployeeEmail = employeeEmail.trim().toLowerCase()
+
     const now = new Date()
 
     // Verify the reservation still belongs to this user and hasn't expired
@@ -100,7 +104,7 @@ export async function POST(req: NextRequest) {
           status: 'CONFIRMED',
           shareToken,
           corporateName: user?.isCorporate ? (user.companyName || null) : null,
-          employeeEmail: employeeEmail || null,
+          employeeEmail: normalizedEmployeeEmail,
           employeePhone: employeePhone || null,
         },
       })

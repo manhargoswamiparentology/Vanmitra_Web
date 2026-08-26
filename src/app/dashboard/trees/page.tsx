@@ -26,8 +26,16 @@ export default async function TreesPage({ searchParams }: PageProps) {
 
   const { tree: selectedId } = await searchParams
 
+  // Trees the user planted themselves, plus trees someone else dedicated to
+  // them (matched by their account email against the dedication's recipient
+  // email) — a gift is only theirs to see once it's actually CONFIRMED.
   const dedications = await prisma.dedication.findMany({
-    where: { userId: session.userId },
+    where: {
+      OR: [
+        { userId: session.userId },
+        { employeeEmail: { equals: session.email, mode: 'insensitive' }, status: 'CONFIRMED' },
+      ],
+    },
     include: {
       tree: {
         include: {
@@ -35,6 +43,7 @@ export default async function TreesPage({ searchParams }: PageProps) {
           updates: { orderBy: { createdAt: 'desc' }, take: 5 },
         },
       },
+      user: { select: { name: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -77,6 +86,7 @@ export default async function TreesPage({ searchParams }: PageProps) {
   const coverPhoto = tree.photos[0]
   const species = SPECIES.find((s) => s.id === tree.speciesId)
   const occasion = OCCASIONS.find((o) => o.id === selected.occasionId)
+  const selectedIsGift = selected.userId !== session.userId
 
   return (
     <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
@@ -99,6 +109,7 @@ export default async function TreesPage({ searchParams }: PageProps) {
         {dedications.map((d) => {
           const dSpecies = SPECIES.find((s) => s.id === d.tree.speciesId)
           const isActive = d.id === activeId
+          const isGift = d.userId !== session.userId
           return (
             <Link
               key={d.id}
@@ -161,6 +172,20 @@ export default async function TreesPage({ searchParams }: PageProps) {
                 >
                   {dSpecies?.name || d.tree.speciesId}
                 </div>
+                {isGift && (
+                  <div
+                    style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: 9,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: 'var(--gold)',
+                      marginBottom: 4,
+                    }}
+                  >
+                    🎁 Gift from {d.user.name}
+                  </div>
+                )}
                 <span
                   style={{
                     display: 'inline-block',
@@ -209,6 +234,11 @@ export default async function TreesPage({ searchParams }: PageProps) {
             {/* Name + status */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
               <div>
+                {selectedIsGift && (
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>
+                    🎁 Gift from {selected.user.name}
+                  </div>
+                )}
                 <h3 style={{ fontSize: 22, marginBottom: 4 }}>{selected.recipientName}</h3>
                 {selected.recipientFrom && (
                   <div style={{ fontFamily: 'var(--serif)', fontSize: 14, color: 'var(--ink-mute)', fontStyle: 'italic' }}>

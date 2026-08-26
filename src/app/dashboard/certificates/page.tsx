@@ -6,21 +6,31 @@ import { SPECIES } from '@/data/constants'
 
 interface DedicationRow {
   id: string
+  userId: string
   recipientName: string
   status: string
   certificates: { id: string }[]
   tree: { speciesId: string }
+  user: { name: string }
 }
 
 export default async function CertificatesPage() {
   const session = await getSession()
   if (!session) redirect('/auth/login')
 
+  // Own certificates, plus certificates for trees someone else dedicated to
+  // this user (matched by account email against the dedication's recipient email).
   const dedications = await prisma.dedication.findMany({
-    where: { userId: session.userId },
+    where: {
+      OR: [
+        { userId: session.userId },
+        { employeeEmail: { equals: session.email, mode: 'insensitive' }, status: 'CONFIRMED' },
+      ],
+    },
     include: {
       certificates: { orderBy: { createdAt: 'desc' }, take: 1 },
       tree: { select: { speciesId: true } },
+      user: { select: { name: true } },
     },
     orderBy: { createdAt: 'desc' },
   }) as DedicationRow[]
@@ -77,13 +87,35 @@ export default async function CertificatesPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
         {treesWithCerts.map((tree) => {
           const speciesName = SPECIES.find((s) => s.id === tree.tree.speciesId)?.name || tree.tree.speciesId
+          const isGift = tree.userId !== session.userId
           return (
             <Link
               key={tree.id}
               href={`/dashboard/certificates/${tree.id}`}
               style={{ textDecoration: 'none' }}
             >
-              <div className="card" style={{ padding: 10 }}>
+              <div className="card" style={{ padding: 10, position: 'relative' }}>
+                {isGift && (
+                  <span
+                    title={`Gift from ${tree.user.name}`}
+                    style={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      zIndex: 2,
+                      fontSize: 14,
+                      background: 'var(--paper)',
+                      borderRadius: '50%',
+                      width: 22,
+                      height: 22,
+                      display: 'grid',
+                      placeItems: 'center',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    🎁
+                  </span>
+                )}
                 {/* Mini certificate */}
                 <div
                   style={{

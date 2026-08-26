@@ -17,7 +17,7 @@ export default async function DashboardHome() {
     // Trees gifted TO this user by someone else (matched by their email)
     prisma.dedication.findMany({
       where: {
-        employeeEmail: session.email,
+        employeeEmail: { equals: session.email, mode: 'insensitive' },
         userId: { not: session.userId }, // exclude own purchases
         status: 'CONFIRMED',
       },
