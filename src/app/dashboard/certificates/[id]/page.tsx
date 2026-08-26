@@ -22,7 +22,13 @@ export default async function CertificateDetailPage({ params }: PageProps) {
   const baseUrl = `${proto}://${host}`
 
   const dedication = await prisma.dedication.findFirst({
-    where: { id, userId: session.userId },
+    where: {
+      id,
+      OR: [
+        { userId: session.userId },
+        { employeeEmail: { equals: session.email, mode: 'insensitive' } },
+      ],
+    },
     select: {
       id: true,
       occasionId: true,

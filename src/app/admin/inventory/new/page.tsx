@@ -70,7 +70,6 @@ export default function NewInventoryTreePage() {
   const [heightCm, setHeightCm] = useState('')
   const [notes, setNotes] = useState('')
   const [adding, setAdding] = useState(false)
-  const [singleResult, setSingleResult] = useState<SuccessResult | null>(null)
   const [singleError, setSingleError] = useState<string | null>(null)
 
   // Bulk form state
@@ -87,7 +86,6 @@ export default function NewInventoryTreePage() {
   async function handleAddSingle(e: React.FormEvent) {
     e.preventDefault()
     setAdding(true)
-    setSingleResult(null)
     setSingleError(null)
 
     try {
@@ -111,11 +109,10 @@ export default function NewInventoryTreePage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to add tree')
 
-      setSingleResult({ uniqueId: data.tree.uniqueId, id: data.tree.id })
+      router.push('/admin/inventory?status=DRAFT')
       router.refresh()
     } catch (err) {
       setSingleError(err instanceof Error ? err.message : 'Error adding tree')
-    } finally {
       setAdding(false)
     }
   }
@@ -205,43 +202,6 @@ export default function NewInventoryTreePage() {
         >
           Single Tree
         </div>
-
-        {/* Success card */}
-        {singleResult && (
-          <div
-            style={{
-              ...msgStyle('ok'),
-              marginBottom: 20,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>Tree added successfully</div>
-              <span
-                className="mono"
-                style={{ fontSize: 13, color: 'var(--forest-deep)' }}
-              >
-                {singleResult.uniqueId}
-              </span>
-            </div>
-            <Link
-              href={`/admin/inventory/${singleResult.id}`}
-              style={{
-                fontFamily: 'var(--display)',
-                fontSize: 13,
-                color: 'var(--forest)',
-                textDecoration: 'none',
-                fontWeight: 500,
-                flexShrink: 0,
-                marginLeft: 16,
-              }}
-            >
-              View tree →
-            </Link>
-          </div>
-        )}
 
         {singleError && (
           <div style={{ ...msgStyle('err'), marginBottom: 20 }}>{singleError}</div>
