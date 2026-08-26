@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'vanamitra-dev-secret-change-in-production'
@@ -13,12 +13,16 @@ export interface SessionPayload {
   isAdmin: boolean
 }
 
-export async function createSession(payload: SessionPayload) {
-  const token = await new SignJWT(payload as unknown as Record<string, unknown>)
+export async function signToken(payload: SessionPayload): Promise<string> {
+  return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
     .sign(SECRET)
+}
+
+export async function createSession(payload: SessionPayload) {
+  const token = await signToken(payload)
 
   const cookieStore = await cookies()
   cookieStore.set(COOKIE_NAME, token, {
@@ -33,7 +37,15 @@ export async function createSession(payload: SessionPayload) {
 export async function getSession(): Promise<SessionPayload | null> {
   try {
     const cookieStore = await cookies()
-    const token = cookieStore.get(COOKIE_NAME)?.value
+    let token = cookieStore.get(COOKIE_NAME)?.value
+
+    if (!token) {
+      const authHeader = (await headers()).get('authorization')
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice('Bearer '.length)
+      }
+    }
+
     if (!token) return null
     const { payload } = await jwtVerify(token, SECRET)
     return payload as unknown as SessionPayload
