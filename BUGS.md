@@ -6,6 +6,42 @@ Newest entries at the top. Each entry: symptom → root cause → fix → files.
 
 ---
 
+## 6. Existing trees' QR codes still dead after the route fix (bug #4)
+
+**Status:** Fixed (this PR)
+**Reported:** Admin re-checked a tree's QR code after bug #4 shipped —
+`VM-1787739980058` (and every other pre-existing tree) still showed
+`https://vanamitra.in/tree/<id>`.
+
+**Root cause:** Bug #4 fixed *how new trees get their QR code* (built from
+the real request host at creation time) and added the `/tree/[uniqueId]`
+page it should point to — but that only applies going forward. Every tree
+already in the database still has whatever `qrCodeData` was written at
+creation time, which is unaffected by a code deploy. On top of that,
+`vanamitra.in` was never actually this app's domain to begin with — the
+real deployment is `vanmittra.com` / `www.vanmittra.com` (note the
+different spelling) — so those old links were dead from day one, for a
+reason unrelated to the missing route.
+
+**Fix:**
+- New `src/app/api/admin/backfill-qr-codes/route.ts` (admin-only POST,
+  same shape as the existing `backfill-tokens` route) — updates every
+  `InventoryTree` whose `qrCodeData` doesn't already start with the
+  current request's host to `${baseUrl}/tree/${uniqueId}`. Idempotent,
+  safe to run more than once.
+- Unlike `backfill-tokens`, this one has a UI trigger — a "Fix old QR
+  codes" button on `/admin/inventory` (`FixQrCodesButton.tsx`) next to
+  "+ Add Tree" — since it needs to run once, from the real deployed site
+  (so `baseUrl` resolves to `vanmittra.com`, not `localhost`), rather than
+  something safe to run from a dev machine against the shared database.
+
+**Files:**
+- `src/app/api/admin/backfill-qr-codes/route.ts` (new)
+- `src/app/admin/inventory/FixQrCodesButton.tsx` (new)
+- `src/app/admin/inventory/page.tsx`
+
+---
+
 ## 5. Recipients with their own account couldn't see trees gifted to them
 
 **Status:** Fixed (this PR)

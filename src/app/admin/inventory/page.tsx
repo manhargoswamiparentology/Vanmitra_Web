@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import FixQrCodesButton from './FixQrCodesButton'
 
 const SPECIES: Record<string, string> = {
   neem: 'Neem',
@@ -182,13 +183,16 @@ export default async function AdminInventoryPage({
           </div>
         </div>
 
-        <Link
-          href="/admin/inventory/new"
-          className="btn btn-primary"
-          style={{ textDecoration: 'none', flexShrink: 0 }}
-        >
-          + Add Tree
-        </Link>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexShrink: 0 }}>
+          <FixQrCodesButton />
+          <Link
+            href="/admin/inventory/new"
+            className="btn btn-primary"
+            style={{ textDecoration: 'none', flexShrink: 0 }}
+          >
+            + Add Tree
+          </Link>
+        </div>
       </div>
 
       {/* Tab strip */}
