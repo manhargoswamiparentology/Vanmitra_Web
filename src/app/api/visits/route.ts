@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 
+// GET /api/visits — list the current user's logged visits
+export async function GET() {
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Please sign in' }, { status: 401 })
+
+  try {
+    const visits = await prisma.visit.findMany({
+      where: { userId: session.userId },
+      orderBy: { visitDate: 'desc' },
+    })
+    return NextResponse.json(visits)
+  } catch (err) {
+    console.error('GET /api/visits', err)
+    return NextResponse.json({ error: 'Failed to fetch visits' }, { status: 500 })
+  }
+}
+
 // POST /api/visits — log a farm visit
 export async function POST(req: NextRequest) {
   const session = await getSession()

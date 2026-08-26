@@ -18,6 +18,7 @@ export async function GET(
         occasionId: true,
         preferredDate: true,
         status: true,
+        shareToken: true,
         tree: {
           select: {
             speciesId: true,
