@@ -4,7 +4,6 @@ import { headers } from 'next/headers'
 import { prisma } from '@/lib/db'
 import { SPECIES, OCCASIONS } from '@/data/constants'
 import CopyButton from '@/components/CopyButton'
-import InvoicePrintButton from './InvoicePrintButton'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -76,6 +75,9 @@ export default async function DedicationPage({ params }: Props) {
   const plotDisplay = dedication.tree.locationAddress
     || (dedication.tree.plotBlock ? `Block ${dedication.tree.plotBlock}` : 'the Kheda farm')
   const treePrice = dedication.tree.price ?? 500
+  const plantedDate = dedication.preferredDate
+    ? new Date(dedication.preferredDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'Being allocated'
 
   // Build share URL from the actual incoming host so it works on any domain / preview URL
   const headersList = await headers()
@@ -201,6 +203,46 @@ export default async function DedicationPage({ params }: Props) {
                 Planted by {dedication.corporateName}
               </div>
             )}
+
+            {/* Details grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 12,
+              marginTop: 16,
+              paddingTop: 16,
+              borderTop: '1px dotted color-mix(in oklch, var(--terra) 25%, transparent)',
+            }}>
+              {[
+                ['Occasion', occasion?.title ?? '—'],
+                ['Planted', plantedDate],
+                ['Plot', dedication.tree.plotBlock || 'Vasna Farm, Kheda'],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: 8.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-mute)', marginBottom: 3 }}>
+                    {label}
+                  </div>
+                  <div style={{ fontFamily: 'var(--serif)', fontSize: 13, color: 'var(--ink)' }}>
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {dedication.message && (
+              <div style={{
+                marginTop: 16,
+                padding: '10px 14px',
+                background: 'color-mix(in oklch, var(--terra) 6%, transparent)',
+                borderLeft: '2px solid color-mix(in oklch, var(--terra) 45%, transparent)',
+                borderRadius: '0 8px 8px 0',
+                textAlign: 'left',
+              }}>
+                <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.55 }}>
+                  &ldquo;{dedication.message}&rdquo;
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -293,9 +335,9 @@ export default async function DedicationPage({ params }: Props) {
 
         {/* Action buttons */}
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 48 }}>
-          <button className="btn btn-ghost btn-sm">
+          <a href={`/api/dedications/${dedication.id}/certificate`} className="btn btn-ghost btn-sm">
             Download certificate
-          </button>
+          </a>
           <Link href="/dashboard" className="btn btn-primary btn-sm">
             View my forest →
           </Link>
@@ -306,7 +348,9 @@ export default async function DedicationPage({ params }: Props) {
           {/* Section label */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <p className="mono-sm" style={{ color: 'var(--ink-mute)', letterSpacing: '0.1em' }}>INVOICE / RECEIPT</p>
-            <InvoicePrintButton />
+            <a href={`/api/dedications/${dedication.id}/invoice`} className="btn btn-ghost btn-sm">
+              Download invoice
+            </a>
           </div>
 
           {/* Invoice document — same parchment treatment as certificate */}
@@ -485,22 +529,6 @@ export default async function DedicationPage({ params }: Props) {
           ))}
         </div>
       </div>
-
-      <style>{`
-        @media print {
-          body > * { display: none !important; }
-          #invoice-print { display: block !important; }
-          nav, footer, .nav, button:not(#invoice-print button) { display: none !important; }
-          #invoice-print {
-            position: fixed !important;
-            top: 0; left: 0;
-            width: 100%; height: auto;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            padding: 40px !important;
-          }
-        }
-      `}</style>
     </div>
   )
 }
