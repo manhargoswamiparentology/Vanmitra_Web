@@ -21,6 +21,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // The recipient's certificate link is delivered to these, so both are required.
+    if (!employeeEmail?.trim() || !employeePhone?.trim()) {
+      return NextResponse.json(
+        { error: "The recipient's email and phone are required" },
+        { status: 400 }
+      )
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(employeeEmail.trim())) {
+      return NextResponse.json(
+        { error: 'Please enter a valid recipient email address' },
+        { status: 400 }
+      )
+    }
+
     const now = new Date()
 
     // Verify the reservation still belongs to this user and hasn't expired

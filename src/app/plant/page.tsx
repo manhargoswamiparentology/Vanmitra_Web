@@ -75,6 +75,12 @@ function makeRecipient(): Recipient {
   return { id: crypto.randomUUID(), name: '', phone: '', email: '', speciesId: '' }
 }
 
+// The recipient's certificate link is emailed to them, so a blank-but-present
+// value isn't enough — it has to look like an address.
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SkeletonCard() {
@@ -160,7 +166,7 @@ function PlantWizardInner() {
   // ── Derived ───────────────────────────────────────────────────────────────
   const occasion     = OCCASIONS.find(o => o.id === occasionId)
   const selectedTree = availableTrees.find(t => t.id === selectedTreeId)
-  const validRecipients = recipients.filter(r => r.name.trim() && r.email.trim() && r.phone.trim() && (!isMulti || r.speciesId))
+  const validRecipients = recipients.filter(r => r.name.trim() && isValidEmail(r.email) && r.phone.trim() && (!isMulti || r.speciesId))
   const treeCount    = isMulti ? validRecipients.length : 1
   const totalPrice   = treeCount * 500
 
@@ -327,7 +333,8 @@ function PlantWizardInner() {
     if (step === 0) return !!occasionId
     if (step === 1) {
       if (isMulti) return validRecipients.length >= 1
-      return !!recipients[0]?.name.trim()
+      const r = recipients[0]
+      return !!r?.name.trim() && isValidEmail(r.email) && !!r.phone.trim()
     }
     if (step === 2) {
       // multi: step 2 is a review of the list — always passable if recipients are valid
@@ -786,7 +793,7 @@ function PlantWizardInner() {
 
                     <div style={{ display: 'grid', gap: 14 }}>
                       {recipients.map((rec, i) => {
-                        const isComplete = rec.name.trim() && rec.phone.trim() && rec.speciesId
+                        const isComplete = rec.name.trim() && rec.phone.trim() && isValidEmail(rec.email) && rec.speciesId
                         return (
                           <div
                             key={rec.id}
@@ -860,9 +867,10 @@ function PlantWizardInner() {
                             {/* Row 2: Email + Species */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                               <div className="field" style={{ margin: 0 }}>
-                                <label style={{ fontSize: 11 }}>Email <span style={{ color: 'var(--ink-mute)', fontWeight: 400 }}>(optional)</span></label>
+                                <label style={{ fontSize: 11 }}>Email *</label>
                                 <input
                                   type="email"
+                                  required
                                   placeholder="their@email.com"
                                   value={rec.email}
                                   onChange={e => updateRecipient(rec.id, 'email', e.target.value)}
@@ -948,7 +956,7 @@ function PlantWizardInner() {
                           </span>
                           {recipients.length > validRecipients.length && (
                             <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--terra)', letterSpacing: '0.06em', marginTop: 2 }}>
-                              {recipients.length - validRecipients.length} incomplete — fill name, phone &amp; species
+                              {recipients.length - validRecipients.length} incomplete — fill name, phone, email &amp; species
                             </div>
                           )}
                         </div>
