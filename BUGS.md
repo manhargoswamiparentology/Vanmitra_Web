@@ -6,6 +6,22 @@ Newest entries at the top. Each entry: symptom → root cause → fix → files.
 
 ---
 
+## 8. Admin Bookings table only showed the booking date, not the time
+
+**Status:** Fixed (this PR) — UX enhancement, not a bug fix.
+**Reported:** Admin → Bookings — the "Date" column showed e.g. `26 Aug 26`
+with no time, making it hard to tell same-day bookings apart.
+
+**Fix:** `src/app/admin/trees/page.tsx` — the Date column now shows the time
+on a second line underneath (same stacked-line pattern already used two
+columns over for the User column's name/email), and the header was
+relabeled "Date / Time".
+
+**Files:**
+- `src/app/admin/trees/page.tsx`
+
+---
+
 ## 7. Admin blog posts had no public page — "View" 404'd
 
 **Status:** Fixed (this PR)
