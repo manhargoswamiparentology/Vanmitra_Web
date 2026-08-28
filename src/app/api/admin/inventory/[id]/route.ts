@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 
+// GET /api/admin/inventory/[id] — single tree, with full photos/updates
+// (the list route only carries _count for those, same as the web list
+// page — this mirrors the web detail page's own separate findUnique).
+// Added for the mobile Inventory detail screen.
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession()
+    if (!session?.isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { id } = await params
+
+    const tree = await prisma.inventoryTree.findUnique({
+      where: { id },
+      include: {
+        dedication: { include: { user: { select: { name: true, email: true } } } },
+        reservedBy: { select: { name: true, email: true } },
+        photos: { orderBy: { takenAt: 'desc' } },
+        updates: { orderBy: { createdAt: 'desc' } },
+        _count: { select: { photos: true, updates: true } },
+      },
+    })
+
+    if (!tree) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    return NextResponse.json({ tree })
+  } catch (err) {
+    console.error('Admin inventory detail GET error:', err)
+    return NextResponse.json({ error: 'Failed to fetch tree' }, { status: 500 })
+  }
+}
+
 // PATCH /api/admin/inventory/[id] — update tree details & price
 export async function PATCH(
   req: NextRequest,
