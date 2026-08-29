@@ -31,6 +31,7 @@ export default async function CertificateDetailPage({ params }: PageProps) {
     },
     select: {
       id: true,
+      createdAt: true,
       occasionId: true,
       recipientName: true,
       recipientFrom: true,
@@ -48,13 +49,11 @@ export default async function CertificateDetailPage({ params }: PageProps) {
   const occasion = OCCASIONS.find((o) => o.id === dedication.occasionId)
 
   const certNumber = `VNM-${dedication.id.slice(-8).toUpperCase()}`
-  const plantedDate = dedication.preferredDate
-    ? new Date(dedication.preferredDate).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : 'Pending'
+  const plantedDate = (dedication.preferredDate ?? dedication.createdAt).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
   const shareUrl = dedication.shareToken ? `${baseUrl}/certificate/${dedication.shareToken}` : null
   const whatsappMsg = encodeURIComponent(
