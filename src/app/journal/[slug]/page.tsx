@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { BLOG_POSTS } from '@/data/constants'
 
@@ -96,12 +97,21 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Hero photo */}
       <div className="container-narrow" style={{ marginBottom: 56 }}>
-        <div className="photo-ph" style={{
+        <div style={{
           aspectRatio: '16 / 9',
           borderRadius: 16,
           minHeight: 200,
+          position: 'relative',
+          overflow: 'hidden',
         }}>
-          <span>{post.tag} · {post.title.split(' ').slice(0, 4).join(' ')}…</span>
+          <Image
+            src={`/images/journal/${post.id}.png`}
+            alt={post.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 720px"
+            style={{ objectFit: 'cover' }}
+            priority
+          />
         </div>
       </div>
 
@@ -194,8 +204,14 @@ export default async function BlogPostPage({ params }: Props) {
               {otherPosts.map(p => (
                 <Link key={p.id} href={`/journal/${p.id}`} style={{ textDecoration: 'none' }}>
                   <div className="card" style={{ height: '100%' }}>
-                    <div className="photo-ph" style={{ height: 140 }}>
-                      <span>{p.tag}</span>
+                    <div style={{ height: 140, position: 'relative', overflow: 'hidden' }}>
+                      <Image
+                        src={`/images/journal/${p.id}.png`}
+                        alt={p.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        style={{ objectFit: 'cover' }}
+                      />
                     </div>
                     <div className="card-body">
                       <span className="tag" style={{ marginBottom: 10, display: 'inline-flex' }}>
