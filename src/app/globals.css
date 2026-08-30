@@ -403,7 +403,7 @@ html { scroll-behavior: smooth; }
   gap: 16px;
   align-items: start;
 }
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .why-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
   .stat-inner { grid-template-columns: 1fr !important; gap: 6px !important; }
 }
@@ -454,11 +454,18 @@ html { scroll-behavior: smooth; }
   border-radius: 16px;
   overflow: hidden;
 }
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .species-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .species-cell { border-right: none !important; border-bottom: 1px solid var(--line) !important; }
   .species-cell:nth-child(odd) { border-right: 1px solid var(--line) !important; }
   .species-cell:nth-last-child(-n+2) { border-bottom: none !important; }
+}
+/* Each cell has a fixed 160px image, so even 2 columns don't fit on phones —
+   drop to a single column below 640px. */
+@media (max-width: 640px) {
+  .species-grid { grid-template-columns: 1fr !important; }
+  .species-cell { border-right: none !important; border-bottom: 1px solid var(--line) !important; }
+  .species-cell:nth-child(7) { border-bottom: none !important; }
 }
 
 /* ── FarmStory ────────────────────────────────────────────── */
