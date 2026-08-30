@@ -222,11 +222,17 @@ section.tight { padding: 64px 0; }
 html { scroll-behavior: smooth; }
 ::selection { background: var(--terra); color: var(--paper); }
 
-@media (max-width: 768px) {
-  .nav-inner { padding: 14px 20px; }
+/* Nav switches to the hamburger drawer earlier than other sections —
+   the full link row + auth actions don't fit iPad portrait widths (~768–1024px)
+   without wrapping onto multiple lines. */
+@media (max-width: 1024px) {
   .nav-links { display: none !important; }
   .nav-desktop-actions { display: none !important; }
   .nav-burger { display: grid !important; }
+}
+
+@media (max-width: 768px) {
+  .nav-inner { padding: 14px 20px; }
   .container, .container-narrow, .container-text { padding: 0 20px; }
   .footer { padding: 48px 20px 24px; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
@@ -379,7 +385,7 @@ html { scroll-behavior: smooth; }
   gap: 64px;
   align-items: start;
 }
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .hero-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
   .hero-right { display: none !important; }
 }
